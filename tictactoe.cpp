@@ -5,7 +5,6 @@
  *
  */
 
-#include <Windows.h>
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,7 +12,7 @@
 #include <assert.h>
 
 #define VER_MAJ 1
-#define VER_MIN 0
+#define VER_MIN 1
 #define BANNER  "TIC-TAC-TOE (c) 2011 Steve Connet"
 #define USAGE   "USAGE: tictactoe.exe num_games"
 
