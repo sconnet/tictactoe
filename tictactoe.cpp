@@ -32,37 +32,37 @@ typedef unsigned short uint16_t;
  */
 class Row {
 public:
-  void assign(uint8_t *c1, uint8_t *c2, uint8_t *c3);
+    void assign(uint8_t *c1, uint8_t *c2, uint8_t *c3);
 
-  bool check(uint16_t rowSum) const {
-    return rowSum == (*c[0] + *c[1] + *c[2]);
-  }
+    bool check(uint16_t rowSum) const {
+        return rowSum == (*c[0] + *c[1] + *c[2]);
+    }
 
-  void mark(uint8_t glyph);  
+    void mark(uint8_t glyph);
 protected:
-  uint8_t *c[3];
+    uint8_t *c[3];
 };
 
 void Row::assign(uint8_t *c1, uint8_t *c2, uint8_t *c3) {
-  c[0] = c1;  // assign pointers
-  c[1] = c2;
-  c[2] = c3;
+    c[0] = c1;  // assign pointers
+    c[1] = c2;
+    c[2] = c3;
 }
 
 void Row::mark(uint8_t glyph)
 {
-  // find open cell in random order
-  uint8_t start_cell = rand() % 2;
-  for(int n = 0; n < 3; ++n)
-  {
-    uint8_t cell = start_cell % 3;
-    if(*c[cell] == ' ')
+    // find open cell in random order
+    uint8_t start_cell = rand() % 2;
+    for(int n = 0; n < 3; ++n)
     {
-      *c[cell] = glyph;
-      break;
+        uint8_t cell = start_cell % 3;
+        if(*c[cell] == ' ')
+        {
+            *c[cell] = glyph;
+            break;
+        }
+        ++start_cell;
     }
-    ++start_cell;
-  }
 }
 
 /*-----------------------------------------------------------------------------
@@ -81,70 +81,70 @@ void Row::mark(uint8_t glyph)
  */
 class Board {
 public:
-  Board();
-  void print();
-  bool check(uint16_t rowSum) const;
-  bool move(uint8_t glyph, uint16_t rowSum);
-  void clear();
-  
+    Board();
+    void print();
+    bool check(uint16_t rowSum) const;
+    bool move(uint8_t glyph, uint16_t rowSum);
+    void clear();
+
 protected:
-  static const int MAX_ROWS  = 8; // 3 horizontal, 3 vertical, 2 diagonal
-  static const int MAX_CELLS = 9; // 3x3
-  Row row[MAX_ROWS];
-  uint8_t cell[MAX_CELLS];
+    static const int MAX_ROWS  = 8; // 3 horizontal, 3 vertical, 2 diagonal
+    static const int MAX_CELLS = 9; // 3x3
+    Row row[MAX_ROWS];
+    uint8_t cell[MAX_CELLS];
 };
 
 Board::Board() {
-  clear();
-  
-  // assign cells to horizontal rows
-  row[0].assign(&cell[0], &cell[1], &cell[2]);
-  row[1].assign(&cell[3], &cell[4], &cell[5]);
-  row[2].assign(&cell[6], &cell[7], &cell[8]);
+    clear();
 
-  // assign cells to vertical rows
-  row[3].assign(&cell[0], &cell[3], &cell[6]);
-  row[4].assign(&cell[1], &cell[4], &cell[7]);
-  row[5].assign(&cell[2], &cell[5], &cell[8]);
+    // assign cells to horizontal rows
+    row[0].assign(&cell[0], &cell[1], &cell[2]);
+    row[1].assign(&cell[3], &cell[4], &cell[5]);
+    row[2].assign(&cell[6], &cell[7], &cell[8]);
 
-  // assign cells to diagnoal rows
-  row[6].assign(&cell[0], &cell[4], &cell[8]);
-  row[7].assign(&cell[2], &cell[4], &cell[6]);
+    // assign cells to vertical rows
+    row[3].assign(&cell[0], &cell[3], &cell[6]);
+    row[4].assign(&cell[1], &cell[4], &cell[7]);
+    row[5].assign(&cell[2], &cell[5], &cell[8]);
+
+    // assign cells to diagnoal rows
+    row[6].assign(&cell[0], &cell[4], &cell[8]);
+    row[7].assign(&cell[2], &cell[4], &cell[6]);
 }
 void Board::clear() {
-  memset(cell, ' ', MAX_CELLS); // clear cells
+    memset(cell, ' ', MAX_CELLS); // clear cells
 }
 
 void Board::print() {
-  printf("+-----------+\n");
-  printf("| %c | %c | %c |\n", cell[0], cell[1], cell[2]);
-  printf("|---+---+---|\n");
-  printf("| %c | %c | %c |\n", cell[3], cell[4], cell[5]);
-  printf("|---+---+---|\n");
-  printf("| %c | %c | %c |\n", cell[6], cell[7], cell[8]);
-  printf("+-----------+\n");
+    printf("+-----------+\n");
+    printf("| %c | %c | %c |\n", cell[0], cell[1], cell[2]);
+    printf("|---+---+---|\n");
+    printf("| %c | %c | %c |\n", cell[3], cell[4], cell[5]);
+    printf("|---+---+---|\n");
+    printf("| %c | %c | %c |\n", cell[6], cell[7], cell[8]);
+    printf("+-----------+\n");
 }
 
 bool Board::check(uint16_t rowSum) const {
-  for(int n = 0; n < MAX_ROWS; ++n) {
-    if(row[n].check(rowSum)) {
-      return true;
+    for(int n = 0; n < MAX_ROWS; ++n) {
+        if(row[n].check(rowSum)) {
+            return true;
+        }
     }
-  }
-  return false;
+    return false;
 }
 
 bool Board::move(uint8_t glyph, uint16_t rowSum)
 {
-  for(int n = 0; n < MAX_ROWS; ++n)
-  {
-    if(row[n].check(rowSum))
+    for(int n = 0; n < MAX_ROWS; ++n)
     {
-      row[n].mark(glyph);
-      return true;
+        if(row[n].check(rowSum))
+        {
+            row[n].mark(glyph);
+            return true;
+        }
     }
-  }
-  return false;
+    return false;
 }
 
 /*-----------------------------------------------------------------------------
@@ -168,137 +168,139 @@ bool Board::move(uint8_t glyph, uint16_t rowSum)
  */
 class Player {
 public:
-  static const uint8_t X = 'X';
-  static const uint8_t O = 'O';
-  static const uint8_t B = ' '; // blank
+    static const uint8_t X = 'X';
+    static const uint8_t O = 'O';
+    static const uint8_t B = ' '; // blank
 
-  Player(uint8_t glyph, Board &board);
-  bool move();
-  bool isWinner() const { return board.check(win); }
-  
+    Player(uint8_t glyph, Board &board);
+    bool move();
+    bool isWinner() const {
+        return board.check(win);
+    }
+
 protected:
-  uint8_t glyph;
-  Board &board;
-  uint16_t G0;
-  uint16_t G1_me;
-  uint16_t G1_opp;
-  uint16_t G2_me;
-  uint16_t G2_opp;
-  uint16_t win;
+    uint8_t glyph;
+    Board &board;
+    uint16_t G0;
+    uint16_t G1_me;
+    uint16_t G1_opp;
+    uint16_t G2_me;
+    uint16_t G2_opp;
+    uint16_t win;
 };
 
 Player::Player(uint8_t glyph, Board &board)
-  : glyph(glyph),
-    board(board)
+    : glyph(glyph),
+      board(board)
 {
-  uint8_t other = (glyph == X) ? O : X;
-  G0      = B     + B     + B;
-  G1_me   = glyph + B     + B;
-  G1_opp  = other + B     + B;
-  G2_me   = glyph + glyph + B;
-  G2_opp  = other + other + B;
-  win     = glyph + glyph + glyph;
+    uint8_t other = (glyph == X) ? O : X;
+    G0      = B     + B     + B;
+    G1_me   = glyph + B     + B;
+    G1_opp  = other + B     + B;
+    G2_me   = glyph + glyph + B;
+    G2_opp  = other + other + B;
+    win     = glyph + glyph + glyph;
 }
 
 bool Player::move()
 {
-  bool ok = false;
+    bool ok = false;
 
-  // try to make winning move
-  ok = ok || board.move(glyph, G2_me);
-  
-  // if cannot, try to block opponent from winning move
-  ok = ok || board.move(glyph, G2_opp);
-  
-  // if cannot, try to move in row with my existing glyph
-  ok = ok || board.move(glyph, G1_me);
-  
-  // if cannot, try to move in row with opponents existing glyph
-  ok = ok || board.move(glyph, G1_opp);
-  
-  // if cannot, move in an open space
-  ok = ok || board.move(glyph, G0);
+    // try to make winning move
+    ok = ok || board.move(glyph, G2_me);
 
-  // board must be full
-  return ok;
+    // if cannot, try to block opponent from winning move
+    ok = ok || board.move(glyph, G2_opp);
+
+    // if cannot, try to move in row with my existing glyph
+    ok = ok || board.move(glyph, G1_me);
+
+    // if cannot, try to move in row with opponents existing glyph
+    ok = ok || board.move(glyph, G1_opp);
+
+    // if cannot, move in an open space
+    ok = ok || board.move(glyph, G0);
+
+    // board must be full
+    return ok;
 }
 
 class Game {
 public:
-  int play();
+    int play();
 protected:
-  Board board;
-  Player *player1;
-  Player *player2;
+    Board board;
+    Player *player1;
+    Player *player2;
 };
 
 int Game::play()
 {
-  int winner = -1;
-  
-  player1 = new Player(Player::X, board);
-  player2 = new Player(Player::O, board);
+    int winner = -1;
 
-  while(true)
-  {
-    if( player1->move() == false)
+    player1 = new Player(Player::X, board);
+    player2 = new Player(Player::O, board);
+
+    while(true)
     {
-      winner = 0;
-      break; // board full - draw
+        if(player1->move() == false)
+        {
+            winner = 0;
+            break; // board full - draw
+        }
+
+        if(player1->isWinner() == true)
+        {
+            winner = 1;
+            break;
+        }
+
+        if(player2->move() == false)
+        {
+            winner = 0;
+            break; // board full - draw
+        }
+
+        if(player2->isWinner() == true)
+        {
+            winner = 2;
+            break;
+        }
     }
 
-    if( player1->isWinner() == true)
-    {
-      winner = 1;
-      break;
-    }
-
-    if( player2->move() == false)
-    {
-      winner = 0;
-      break; // board full - draw
-    }
-
-    if( player2->isWinner() == true)
-    {
-      winner = 2;
-      break;
-    }
-  }
-  
-  delete player2;
-  delete player1;
-  return winner;
+    delete player2;
+    delete player1;
+    return winner;
 }
 
 int main(int argc, char *argv[])
 {
-  printf("tictactoe v%d.%02d (c) 2011 Steve Connet\n\n", VER_MAJ, VER_MIN);
+    printf("tictactoe v%d.%02d (c) 2011 Steve Connet\n\n", VER_MAJ, VER_MIN);
 
-  if( argc != 2 ) {
-    printf("%s\n\n", USAGE);
-    printf("%s\n\n", DESC);
-    return EXIT_FAILURE;
-  }
+    if(argc != 2) {
+        printf("%s\n\n", USAGE);
+        printf("%s\n\n", DESC);
+        return EXIT_FAILURE;
+    }
 
-  int iterations = atoi(argv[1]);
+    int iterations = atoi(argv[1]);
 
-  srand(time(NULL));
+    srand(time(NULL));
 
-  int results[3] = { 0, 0, 0 }; // draw, Player 1, Player 2
-  enum { X=0, O=1, DRAW=2 };
+    int results[3] = { 0, 0, 0 }; // draw, Player 1, Player 2
+    enum { X=0, O=1, DRAW=2 };
 
-  for(int i = 0; i < iterations; ++i)
-  {
-    Game game;
-    int winner = game.play();
-    ++results[winner];
-  }
+    for(int i = 0; i < iterations; ++i)
+    {
+        Game game;
+        int winner = game.play();
+        ++results[winner];
+    }
 
-  printf("After %d iterations of the game,\n", iterations);
-  printf("Player %c won %d times\n", Player::X, results[1]);
-  printf("Player %c won %d times\n", Player::O, results[2]);
-  printf("There were %d draws\n", results[0]);
-  
-  return EXIT_SUCCESS;
+    printf("After %d iterations of the game,\n", iterations);
+    printf("Player %c won %d times\n", Player::X, results[1]);
+    printf("Player %c won %d times\n", Player::O, results[2]);
+    printf("There were %d draws\n", results[0]);
+
+    return EXIT_SUCCESS;
 }
