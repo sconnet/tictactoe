@@ -30,11 +30,13 @@ typedef unsigned short uint16_t;
  *  Contains 3 pointers that point to three cells in the board
  *-----------------------------------------------------------------------------
  */
-class Row {
+class Row
+{
 public:
     void assign(uint8_t *c1, uint8_t *c2, uint8_t *c3);
 
-    bool check(uint16_t rowSum) const {
+    bool check(uint16_t rowSum) const
+    {
         return rowSum == (*c[0] + *c[1] + *c[2]);
     }
 
@@ -43,7 +45,8 @@ protected:
     uint8_t *c[3];
 };
 
-void Row::assign(uint8_t *c1, uint8_t *c2, uint8_t *c3) {
+void Row::assign(uint8_t *c1, uint8_t *c2, uint8_t *c3)
+{
     c[0] = c1;  // assign pointers
     c[1] = c2;
     c[2] = c3;
@@ -79,7 +82,8 @@ void Row::mark(uint8_t glyph)
  *   R7           R6
  *-----------------------------------------------------------------------------
  */
-class Board {
+class Board
+{
 public:
     Board();
     void print();
@@ -94,7 +98,8 @@ protected:
     uint8_t cell[MAX_CELLS];
 };
 
-Board::Board() {
+Board::Board()
+{
     clear();
 
     // assign cells to horizontal rows
@@ -111,11 +116,13 @@ Board::Board() {
     row[6].assign(&cell[0], &cell[4], &cell[8]);
     row[7].assign(&cell[2], &cell[4], &cell[6]);
 }
-void Board::clear() {
+void Board::clear()
+{
     memset(cell, ' ', MAX_CELLS); // clear cells
 }
 
-void Board::print() {
+void Board::print()
+{
     printf("+-----------+\n");
     printf("| %c | %c | %c |\n", cell[0], cell[1], cell[2]);
     printf("|---+---+---|\n");
@@ -125,9 +132,12 @@ void Board::print() {
     printf("+-----------+\n");
 }
 
-bool Board::check(uint16_t rowSum) const {
-    for(int n = 0; n < MAX_ROWS; ++n) {
-        if(row[n].check(rowSum)) {
+bool Board::check(uint16_t rowSum) const
+{
+    for(int n = 0; n < MAX_ROWS; ++n)
+    {
+        if(row[n].check(rowSum))
+        {
             return true;
         }
     }
@@ -166,7 +176,8 @@ bool Board::move(uint8_t glyph, uint16_t rowSum)
  *
  *-----------------------------------------------------------------------------
  */
-class Player {
+class Player
+{
 public:
     static const uint8_t X = 'X';
     static const uint8_t O = 'O';
@@ -174,7 +185,8 @@ public:
 
     Player(uint8_t glyph, Board &board);
     bool move();
-    bool isWinner() const {
+    bool isWinner() const
+    {
         return board.check(win);
     }
 
@@ -225,7 +237,8 @@ bool Player::move()
     return ok;
 }
 
-class Game {
+class Game
+{
 public:
     int play();
 protected:
@@ -277,7 +290,8 @@ int main(int argc, char *argv[])
 {
     printf("tictactoe v%d.%02d (c) 2011 Steve Connet\n\n", VER_MAJ, VER_MIN);
 
-    if(argc != 2) {
+    if(argc != 2)
+    {
         printf("%s\n\n", USAGE);
         printf("%s\n\n", DESC);
         return EXIT_FAILURE;
@@ -288,7 +302,7 @@ int main(int argc, char *argv[])
     srand(time(NULL));
 
     int results[3] = { 0, 0, 0 }; // draw, Player 1, Player 2
-    enum { X=0, O=1, DRAW=2 };
+    enum { X = 0, O = 1, DRAW = 2 };
 
     for(int i = 0; i < iterations; ++i)
     {
