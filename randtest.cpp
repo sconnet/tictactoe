@@ -1,3 +1,5 @@
+#if 0
+
 #include <Windows.h>
 #include <time.h>
 #include <stdio.h>
@@ -83,3 +85,5 @@ int main(int argc, char *argv[])
 
     return EXIT_SUCCESS;
 }
+
+#endf /* if 0 */
