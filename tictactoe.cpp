@@ -41,12 +41,14 @@
 #include <assert.h>
 
 static char const *BANNER = "TIC-TAC-TOE 1.2 (c) 2011-2021 Steve Connet";
-static char const *USAGE  = "USAGE: tictactoe.exe num_games";
+static char const *USAGE  = "USAGE: tictactoe.exe num_games [-p]";
 
 static char const *DESC   = "\
 The computer will play against itself for the number of games specified in\n\
 the command line argument 'num_games'. After the program has played the\n\
 specified number of games, it will display the results.";
+
+bool print_board = false;
 
 /*-----------------------------------------------------------------------------
  *  Class Row
@@ -58,12 +60,7 @@ class Row
 {
     public:
         void assign(uint8_t *c1, uint8_t *c2, uint8_t *c3);
-        void mark(uint8_t const glyph);
-
-        inline bool check(uint16_t rowSum) const
-        {
-            return ( rowSum == (*c[0] + *c[1] + *c[2]) );
-        }
+        int mark(uint8_t const glyph);
 
         inline bool isMatch(uint16_t const rowSum) const
         {
@@ -81,8 +78,10 @@ void Row::assign(uint8_t *c1, uint8_t *c2, uint8_t *c3)
     c[2] = c3;
 }
 
-void Row::mark(uint8_t const glyph)
+int Row::mark(uint8_t const glyph)
 {
+    int result = -1;
+
     // find open cell in random order
     uint8_t start_cell = rand() % 2;
 
@@ -93,13 +92,15 @@ void Row::mark(uint8_t const glyph)
         if (' ' == *c[idx])
         {
             *c[idx] = glyph;
+            result = (int)idx;
             break;
         }
 
         ++start_cell;
     }
-}
 
+    return result;
+}
 
 /*-----------------------------------------------------------------------------
  *  Class Board
@@ -128,6 +129,9 @@ class Board
         void print() const;
         bool hasWinner(uint16_t const rowSum) const;
         bool findMove(uint8_t const glyph, uint16_t const rowSum);
+        bool findCorner(uint8_t const glyph);
+        bool findEmptyCell(uint8_t const glyph);
+        bool markCenter(uint8_t const glyph);
 
     protected:
         static const size_t MAX_ROWS  = 8; // 3 horiz, 3 vert, 2 diag
@@ -187,21 +191,109 @@ bool Board::findMove(uint8_t const glyph, uint16_t const rowSum)
 {
     bool result = false;
 
-    // select random row to start
-    uint8_t start_row = rand() % (MAX_ROWS-1);
+    // check corners first
+    uint8_t const MAX_DIAGONALS = 2;
+    uint8_t diagonal_row[MAX_DIAGONALS] = { 6, 7 };
+    uint8_t start_row = rand() % MAX_DIAGONALS;
 
-    for (size_t n = 0; n < MAX_ROWS; ++n)
+    for (size_t n = 0; n < MAX_DIAGONALS; ++n)
     {
-        uint8_t idx = start_row % MAX_ROWS;
+        uint8_t idx = start_row % MAX_DIAGONALS;
+        uint8_t row_idx = diagonal_row[idx];
 
-        if (row[idx].isMatch(rowSum))
+        if (row[row_idx].isMatch(rowSum))
         {
-            row[idx].mark(glyph);
+            row[row_idx].mark(glyph);
             result = true;
             break;
         }
 
         ++start_row;
+    }
+
+    if (!result)
+    {
+        // select random row to start (non-diagonals)
+        uint8_t const CHECK_ROWS = MAX_ROWS - MAX_DIAGONALS;
+        uint8_t start_row = rand() % CHECK_ROWS;
+
+        for (size_t n = 0; n < CHECK_ROWS; ++n)
+        {
+            uint8_t idx = start_row % CHECK_ROWS;
+
+            if (row[idx].isMatch(rowSum))
+            {
+                int cell_idx = row[idx].mark(glyph);
+                result = true;
+                break;
+            }
+
+            ++start_row;
+        }
+    }
+
+    return result;
+}
+
+bool Board::findCorner(uint8_t const glyph)
+{
+    uint8_t const MAX_CORNERS = 4;
+    uint8_t corner_cell[MAX_CORNERS] = { 0, 2, 6, 8 };
+    bool result = false;
+
+    // select random corner cell to start
+    uint8_t start_corner = rand() % MAX_CORNERS;
+
+    for (size_t n = 0; n < MAX_CORNERS; ++n)
+    {
+        uint8_t idx = start_corner % MAX_CORNERS;
+        uint8_t corner_idx = corner_cell[idx];
+
+        if (' ' == cell[corner_idx])
+        {
+            cell[corner_idx] = glyph;
+            result = true;
+            break;
+        }
+
+        ++start_corner;
+    }
+
+    return result;
+}
+
+bool Board::findEmptyCell(uint8_t const glyph)
+{
+    bool result = false;
+
+    // select random cell to start
+    uint8_t start_cell = rand() % MAX_CELLS;
+
+    for (size_t n = 0; n < MAX_CELLS; ++n)
+    {
+        uint8_t idx = start_cell % MAX_CELLS;
+
+        if (' ' == cell[idx])
+        {
+            cell[idx] = glyph;
+            result = true;
+            break;
+        }
+
+        ++start_cell;
+    }
+
+    return result;
+}
+
+bool Board::markCenter(uint8_t const glyph)
+{
+    bool result = false;
+
+    if (' ' == cell[4])
+    {
+        cell[4] = glyph;
+        result = true;
     }
 
     return result;
@@ -221,6 +313,7 @@ bool Board::findMove(uint8_t const glyph, uint16_t const rowSum)
  * 79 + 32 + 32 = 143   O__   G1
  * 88 + 32 + 32 = 152   X__   G1
  * 79 + 79 + 32 = 190   OO_   G2
+ * 88 + 79 + 32 = 199   XO_   G2
  * 88 + 88 + 32 = 208   XX_   G2
  * 79 + 79 + 79 = 237   OOO   win
  * 79 + 79 + 88 = 246   OOX   draw
@@ -287,14 +380,26 @@ bool Player::move()
     // if cannot, try to block opponent from winning move
     ok = ok || board.findMove(glyph, G2_opp);
 
+    // try to go in center if available
+    ok = ok || board.markCenter(glyph);
+
     // if cannot, try to move in row with my existing glyph
     ok = ok || board.findMove(glyph, G1_me);
 
     // if cannot, try to move in row with opponents existing glyph
-    ok = ok || board.findMove(glyph, G1_opp);
+    //ok = ok || board.findMove(glyph, G1_opp);
 
-    // if cannot, move in an open space
+    // if cannot, try to move in an blank corner
+    ok = ok || board.findCorner(glyph);
+
+    // if cannot, move in a blank row
     ok = ok || board.findMove(glyph, G0);
+
+    // if cannot, try to move in row with opposite glyphs
+    ok = ok || board.findMove(glyph, X + O + B);
+
+    // if cannot, move in an empty cell
+    ok = ok || board.findEmptyCell(glyph);
 
     // board must be full
     return ok;
@@ -357,7 +462,13 @@ uint8_t Game::play()
     uint8_t winner = NONE;
 
     // the winner of the last game goes first
-    uint8_t player_to_move = (X == last_winner) ? X : O;
+    uint8_t player_to_move = last_winner;
+
+    if (player_to_move != X || player_to_move != O)
+    {
+        // randomize who goes first
+        player_to_move = rand() % DRAW;
+    }
 
     // clear board from previous game
     board.clear();
@@ -385,7 +496,10 @@ uint8_t Game::play()
     }
 
     last_winner = winner;
-//    board.print();
+    if (print_board)
+    {
+        board.print();
+    }
 
     return winner;
 }
@@ -400,7 +514,7 @@ int main(int argc, char *argv[])
 {
     int result = EXIT_SUCCESS;
 
-    if (argc != 2)
+    if (argc < 2)
     {
         printf("%s\n\n", BANNER);
         printf("%s\n\n", USAGE);
@@ -412,7 +526,12 @@ int main(int argc, char *argv[])
     {
         size_t iterations = atoi(argv[1]);
         size_t result[3] = { 0, 0, 0 }; // Player 1, Player 2, Draw
-        size_t percent[3] = { 0, 0, 0 };
+        float percent[3] = { 0, 0, 0 };
+
+        if (3 == argc && (!strcmp(argv[2], "-p") || !strcmp(argv[2], "-p")))
+        {
+            print_board = true;
+        }
 
         srand(time(NULL));
 
@@ -428,9 +547,9 @@ int main(int argc, char *argv[])
         }
 
         printf(" Games: %lu\n", iterations);
-        printf("X wins: %lu (%lu%%)\n", result[Game::X], percent[Game::X]);
-        printf("O wins: %lu (%lu%%)\n", result[Game::O], percent[Game::O]);
-        printf(" Draws: %lu (%lu%%)\n", result[Game::DRAW], percent[Game::DRAW]);
+        printf("X wins: %lu (%.2f%%)\n", result[Game::X], percent[Game::X]);
+        printf("O wins: %lu (%.2f%%)\n", result[Game::O], percent[Game::O]);
+        printf(" Draws: %lu (%.2f%%)\n", result[Game::DRAW], percent[Game::DRAW]);
     }
 
     return result;
